@@ -44,15 +44,20 @@
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
           CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
           CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
+          RUST_BACKTRACE = "1";
+          # Force clang-sys to use host libclang
+          CLANG_SYS_STATIC = "1";
           nativeBuildInputs = [
             rustPlatform.bindgenHook
             pkgs.pkg-config
             pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+            pkgs.llvmPackages.libclang
           ];
           buildInputs = [
             pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           ];
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           doCheck = false;
         };
       devShells.${system}.default = pkgs.mkShell {
@@ -63,6 +68,7 @@
           rustPlatform.bindgenHook
           pkgs.pkg-config
           pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+          pkgs.llvmPackages.libclang
         ];
         buildInputs = [
           toolchain
@@ -71,7 +77,10 @@
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
         CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
+        BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
         CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+        RUST_BACKTRACE = "1";
+        CLANG_SYS_STATIC = "1";
         PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
       };
     };
