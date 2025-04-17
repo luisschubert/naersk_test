@@ -55,7 +55,6 @@
         RUST_BACKTRACE = "full";
         RUST_LOG = "clang_sys=debug";
         LIBCLANG_NO_LIBCXX = "1";
-        # Enable debug info for build scripts
         CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG = "true";
         doCheck = false;
       };

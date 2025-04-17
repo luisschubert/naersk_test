@@ -5,9 +5,9 @@ fn main() {
     // Compile C library
     cc::Build::new()
         .file("csrc/mylib.c")
-        .flag("-O2") // Optional: optimization
-        .target("aarch64-unknown-linux-gnu") // Match cross-compilation target
-        .compile("mylib"); // Outputs libmylib.a
+        .flag("-O2")
+        .target("aarch64-unknown-linux-gnu")
+        .compile("mylib");
 
     // Tell Cargo to link libmylib.a
     println!("cargo:rustc-link-lib=static=mylib");
@@ -16,6 +16,7 @@ fn main() {
     // Generate bindgen bindings
     let bindings = bindgen::Builder::default()
         .header("csrc/mylib.h")
+        .clang_arg("--target=x86_64-unknown-linux-gnu") // Force host clang
         .generate()
         .expect("Unable to generate bindings");
 
