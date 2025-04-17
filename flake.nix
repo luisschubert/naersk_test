@@ -5,14 +5,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
-    naersk = {
-      url = "github:nix-community/naersk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, fenix, flake-utils, naersk, nixpkgs }:
+  outputs = { self, fenix, flake-utils, nixpkgs }:
     let
       system = "x86_64-linux";
       target = "aarch64-unknown-linux-gnu";
@@ -33,34 +29,31 @@
       };
     in
     {
-      packages.${system}.default =
-        (naersk.lib.${system}.override {
-          cargo = toolchain;
-          rustc = toolchain;
-        }).buildPackage {
-          src = ./.;
-          CARGO_BUILD_TARGET = target;
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
-            "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-          CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-          CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
-          RUST_BACKTRACE = "full";
-          RUST_LOG = "clang_sys=debug";
-          LIBCLANG_NO_LIBCXX = "1";
-          nativeBuildInputs = [
-            rustPlatform.bindgenHook
-            pkgs.pkg-config
-            pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
-            pkgs.llvmPackages.libclang
-            pkgs.llvmPackages.clang
-          ];
-          buildInputs = [
-            pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
-          ];
-          doCheck = false;
+      packages.${system}.default = rustPlatform.buildRustPackage {
+        pname = "naersk_test";
+        version = "0.1.0";
+        src = ./.;
+        cargoLock = {
+          lockFile = ./Cargo.lock;
         };
+        nativeBuildInputs = [
+          rustPlatform.bindgenHook
+          pkgs.pkg-config
+          pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+          pkgs.llvmPackages.libclang
+          pkgs.llvmPackages.clang
+        ];
+        buildInputs = [
+          pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+        ];
+        CARGO_BUILD_TARGET = target;
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
+          "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+        CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+        LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+        RUST_BACKTRACE = "full";
+        doCheck = false;
+      };
       devShells.${system}.default = pkgs.mkShell {
         shellHook = ''
           export PS1="(naersk_test shell) $PS1"
@@ -78,13 +71,9 @@
           pkgs.rustc
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-        CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
-        BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
         CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-        RUST_BACKTRACE = "full";
-        RUST_LOG = "clang_sys=debug";
-        LIBCLANG_NO_LIBCXX = "1";
         PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
+        RUST_BACKTRACE = "full";
       };
     };
 }
