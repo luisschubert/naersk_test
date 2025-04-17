@@ -10,18 +10,14 @@
 
   outputs = { self, fenix, flake-utils, nixpkgs }:
     let
-      system = "x86_64-linux";
-      target = "aarch64-unknown-linux-gnu";
+      system = "aarch64-linux"; # Emulate aarch64 natively
       pkgs = import nixpkgs {
         inherit system;
-        crossSystem = {
-          config = target;
-        };
+        # No crossSystem needed since we're "natively" compiling via QEMU
       };
       toolchain = with fenix.packages.${system}; combine [
         complete.cargo
         complete.rustc
-        targets.${target}.latest.rust-std
       ];
       rustPlatform = pkgs.makeRustPlatform {
         cargo = toolchain;
@@ -39,17 +35,12 @@
         nativeBuildInputs = [
           rustPlatform.bindgenHook
           pkgs.pkg-config
-          pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           pkgs.llvmPackages_18.libclang
           pkgs.llvmPackages_18.clang
         ];
         buildInputs = [
-          pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+          # Add runtime dependencies if needed, e.g., pkgs.openssl
         ];
-        CARGO_BUILD_TARGET = target;
-        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
-          "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-        CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
         CLANG_PATH = "${pkgs.llvmPackages_18.clang}/bin/clang";
         BINDGEN_CLANG_PATH = "${pkgs.llvmPackages_18.clang}/bin/clang";
@@ -57,8 +48,9 @@
         RUST_LOG = "clang_sys=debug";
         LIBCLANG_NO_LIBCXX = "1";
         CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG = "true";
-        doCheck = false;
+        doCheck = false; # Disable tests if they cause issues
       };
+
       devShells.${system}.default = pkgs.mkShell {
         shellHook = ''
           export PS1="(naersk_test shell) $PS1"
@@ -66,7 +58,6 @@
         nativeBuildInputs = [
           rustPlatform.bindgenHook
           pkgs.pkg-config
-          pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           pkgs.llvmPackages_18.libclang
           pkgs.llvmPackages_18.clang
         ];
@@ -77,11 +68,10 @@
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
         BINDGEN_CLANG_PATH = "${pkgs.llvmPackages_18.clang}/bin/clang";
-        CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         RUST_BACKTRACE = "full";
         RUST_LOG = "clang_sys=debug";
         LIBCLANG_NO_LIBCXX = "1";
-        PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
+        PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.llvmPackages_18.clang ]);
       };
     };
 }
