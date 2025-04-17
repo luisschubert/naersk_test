@@ -14,7 +14,7 @@
 
   outputs = { self, fenix, flake-utils, naersk, nixpkgs }:
     let
-      system = "x86_64-linux"; # Host system
+      system = "x86_64-linux";
       target = "aarch64-unknown-linux-gnu";
       pkgs = import nixpkgs {
         inherit system;
@@ -22,11 +22,16 @@
           config = target;
         };
       };
+      # Use a complete toolchain with aarch64 support
       toolchain = with fenix.packages.${system}; combine [
-        minimal.cargo
-        minimal.rustc
+        complete.cargo
+        complete.rustc
         targets.${target}.latest.rust-std
       ];
+      rustPlatform = pkgs.makeRustPlatform {
+        cargo = toolchain;
+        rustc = toolchain;
+      };
     in
     {
       packages.${system}.default =
@@ -38,30 +43,39 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+          BINDGEN_EXTRA_CLANG_ARGS_aarch64_unknown_linux_gnu = "--target=aarch64-unknown-linux-gnu";
+          # Force build scripts to target aarch64
+          RUSTFLAGS = "--cfg target_arch=\"aarch64\"";
+          CARGO_BUILD_RUSTFLAGS = "--target ${target}";
           nativeBuildInputs = [
-            pkgs.clang
-            pkgs.llvmPackages.libclang # For bindgen
+            rustPlatform.bindgenHook # For bindgen
             pkgs.pkg-config
+            pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           ];
           buildInputs = [
             pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           ];
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib"; # For bindgen
-          doCheck = false; # Skip tests to avoid dependency issues
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          doCheck = false;
         };
       devShells.${system}.default = pkgs.mkShell {
         shellHook = ''
           export PS1="(naersk_test shell) $PS1"
         '';
-        buildInputs = [
-          toolchain
-          pkgs.clang
-          pkgs.llvmPackages.libclang
+        nativeBuildInputs = [
+          rustPlatform.bindgenHook
           pkgs.pkg-config
           pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
         ];
+        buildInputs = [
+          toolchain
+          pkgs.cargo # Fallback for cargo
+          pkgs.rustc # Fallback for rustc
+        ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-        PATH = "${toolchain}/bin:" + (pkgs.lib.makeBinPath [ pkgs.clang pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
+        PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
+        RUSTFLAGS = "--cfg target_arch=\"aarch64\"";
+        CARGO_BUILD_RUSTFLAGS = "--target ${target}";
       };
     };
 }
