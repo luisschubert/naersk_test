@@ -43,7 +43,7 @@
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
           BINDGEN_EXTRA_CLANG_ARGS_aarch64_unknown_linux_gnu = "--target=aarch64-unknown-linux-gnu";
-          CARGO_BUILD_RUSTFLAGS = "--target ${target}";
+          # CARGO_BUILD_RUSTFLAGS = "--target ${target}";
           nativeBuildInputs = [
             rustPlatform.bindgenHook
             pkgs.pkg-config
