@@ -51,6 +51,7 @@
           "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
+        CLANG_PATH = "${pkgs.llvmPackages_18.clang}/bin/clang";
         BINDGEN_CLANG_PATH = "${pkgs.llvmPackages_18.clang}/bin/clang";
         RUST_BACKTRACE = "full";
         RUST_LOG = "clang_sys=debug";
