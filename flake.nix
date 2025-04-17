@@ -51,7 +51,12 @@
           "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+        BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
         RUST_BACKTRACE = "full";
+        RUST_LOG = "clang_sys=debug";
+        LIBCLANG_NO_LIBCXX = "1";
+        # Enable debug info for build scripts
+        CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG = "true";
         doCheck = false;
       };
       devShells.${system}.default = pkgs.mkShell {
@@ -71,9 +76,12 @@
           pkgs.rustc
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+        BINDGEN_CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
         CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-        PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
         RUST_BACKTRACE = "full";
+        RUST_LOG = "clang_sys=debug";
+        LIBCLANG_NO_LIBCXX = "1";
+        PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
       };
     };
 }
