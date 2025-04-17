@@ -22,7 +22,6 @@
           config = target;
         };
       };
-      # Use a complete toolchain with aarch64 support
       toolchain = with fenix.packages.${system}; combine [
         complete.cargo
         complete.rustc
@@ -44,11 +43,9 @@
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
           BINDGEN_EXTRA_CLANG_ARGS_aarch64_unknown_linux_gnu = "--target=aarch64-unknown-linux-gnu";
-          # Force build scripts to target aarch64
-          RUSTFLAGS = "--cfg target_arch=\"aarch64\"";
           CARGO_BUILD_RUSTFLAGS = "--target ${target}";
           nativeBuildInputs = [
-            rustPlatform.bindgenHook # For bindgen
+            rustPlatform.bindgenHook
             pkgs.pkg-config
             pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
           ];
@@ -69,12 +66,11 @@
         ];
         buildInputs = [
           toolchain
-          pkgs.cargo # Fallback for cargo
-          pkgs.rustc # Fallback for rustc
+          pkgs.cargo
+          pkgs.rustc
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
         PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
-        RUSTFLAGS = "--cfg target_arch=\"aarch64\"";
         CARGO_BUILD_RUSTFLAGS = "--target ${target}";
       };
     };
