@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.70" # Latest version as of 2025
+bindgen = "0.71.1" # Latest version as of 2025
 cc = "1.0"       # For compiling C code
