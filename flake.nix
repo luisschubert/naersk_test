@@ -42,8 +42,8 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-          BINDGEN_EXTRA_CLANG_ARGS_aarch64_unknown_linux_gnu = "--target=aarch64-unknown-linux-gnu";
-          # CARGO_BUILD_RUSTFLAGS = "--target ${target}";
+          CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+          CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
           nativeBuildInputs = [
             rustPlatform.bindgenHook
             pkgs.pkg-config
@@ -70,8 +70,9 @@
           pkgs.rustc
         ];
         LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+        CLANG_PATH = "${pkgs.llvmPackages.clang}/bin/clang";
+        CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
         PATH = "${toolchain}/bin:${pkgs.cargo}/bin:${pkgs.rustc}/bin:" + (pkgs.lib.makeBinPath [ pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc ]);
-        CARGO_BUILD_RUSTFLAGS = "--target ${target}";
       };
     };
 }
